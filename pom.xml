@@ -100,7 +100,7 @@
 			</plugin>
 			
 	         <plugin>
-		        <groupId>io.fabric8</groupId>
+		        <groupId>com.spotify</groupId>
 		        <artifactId>docker-maven-plugin</artifactId>
 		        <extensions>true</extensions>
 		        
