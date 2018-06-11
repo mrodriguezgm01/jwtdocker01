@@ -7,6 +7,7 @@
 	<artifactId>springboot-jwt</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
+
 	<name>springboot-jwt</name>
 	<description>Demo project for Spring Boot</description>
 
@@ -16,6 +17,18 @@
 		<version>1.5.3.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>1.8</java.version>
+		
+	    <base>frolvlad/alpine-oraclejdk8:slim</base>
+	    <tomcat.port>9081</tomcat.port>
+	    <tomcat.ip>127.0.0.1</tomcat.ip>
+	    <file>readme</file>
+	    
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -55,25 +68,19 @@
 			<artifactId>spring-security-jwt</artifactId>
 			<version>1.0.7.RELEASE</version>
 		</dependency>
-            <!-- https://mvnrepository.com/artifact/org.springframework.security.oauth/spring-security-oauth2 -->
-            <dependency>
-                <groupId>org.springframework.security.oauth</groupId>
-                <artifactId>spring-security-oauth2</artifactId>
-                <version>2.1.0.RELEASE</version>
-            </dependency>
-            <dependency>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                    <version>2.8.6</version>
-            </dependency>
+        <!-- https://mvnrepository.com/artifact/org.springframework.security.oauth/spring-security-oauth2 -->
+        <dependency>
+            <groupId>org.springframework.security.oauth</groupId>
+            <artifactId>spring-security-oauth2</artifactId>
+            <version>2.1.0.RELEASE</version>
+        </dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.8.6</version>
+		</dependency>
 
 	</dependencies>
-        
-        <properties>
-            <docker.image.prefix>mavenjwt</docker.image.prefix>
-            <java.version>1.8</java.version>
-        </properties>
-    
 	<build>
 		<plugins>
 			<plugin>
@@ -81,7 +88,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <executable>true</executable>
-                    <addResources>true</addResources>
+					<addResources>true</addResources>
                 </configuration>
                 <executions>
                     <execution>
@@ -90,21 +97,44 @@
                         </goals>
                     </execution>
                 </executions>
-		</plugin>
-		 <!-- tag::plugin[] -->
-                <plugin>
-                    <groupId>com.spotify</groupId>
-                    <artifactId>dockerfile-maven-plugin</artifactId>
-                    <version>1.3.6</version>
-                    <configuration>
-                        <repository>${docker.image.prefix}/${project.artifactId}</repository>
-                        <buildArgs>
-                            <JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
-                        </buildArgs>
-                    </configuration>
-                </plugin>
-                <!-- end::plugin[] -->	
-	         
+			</plugin>
+			
+	         <plugin>
+		        <groupId>com.spotify</groupId>
+		        <artifactId>docker-maven-plugin</artifactId>
+                        <version>1.1.0</version>
+		        <extensions>true</extensions>
+		        
+ 		        <configuration>
+		          <images>
+			            <image>
+			              <name>springboot-jwt</name>
+			              <alias>springboot-jwt</alias>
+                                      <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
+			              <build>
+			                <filter>@</filter>
+			                <dockerFileDir>${project.basedir}/src/main/docker</dockerFileDir>
+			                <assembly>
+			                  <descriptorRef>artifact</descriptorRef>
+			                </assembly>
+			              </build>
+			              <run>
+			              	<namingStrategy>alias</namingStrategy>
+			                <ports> 
+			                  <port>${tomcat.port}:8080</port>
+			                </ports>
+					         <wait> 
+					           <http>
+					              <url>http://${tomcat.ip}:${tomcat.port}/health</url>
+					           </http>
+					           <time>90000</time>
+					         </wait>
+			              </run>
+			            </image>
+		          </images>
+		        </configuration>	
+		        	
+		      </plugin>
 		</plugins>
 	</build>
 
